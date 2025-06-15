@@ -9,7 +9,7 @@ Se sugiere que se realize las siguientes pruebas para  verificar el correcto fun
 
 1. Ejecutar la aplicación
 2. Registrar un usuario con email y contraseña
-3. Probar Google Login (completamente funcional)
+3. Probar Google Login
 4. Agregar movimientos en Línea 1 y Lima Pass
 5. Ver gráficos en la pestaña Resumen
 6. Probar filtros por fecha
@@ -19,7 +19,7 @@ Se sugiere que se realize las siguientes pruebas para  verificar el correcto fun
 ![image](https://github.com/user-attachments/assets/2c92a76e-ce40-494b-b924-57cbb23510d9)
 
 ## **Uso de Inteligencia artificial**
-Se utilizó inteligencia artificial en los códigos en Java para ayuda a solucionar bugs, así como para comentarios que ayuden a identificar mejor las partes del código mapeadas a su funcionalidad, y algunos de los mensajes (toast) para que se vean con emojis.
+Se utilizó inteligencia artificial en los códigos en Java para ayuda a solucionar bugs, así como para comentarios que ayuden a identificar mejor las partes del código mapeadas a su funcionalidad.
 
 ## **Información del Proyecto:** 
 La versión de Android utilizada es:  
