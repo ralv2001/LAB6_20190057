@@ -75,22 +75,17 @@ public class MovimientosLimaPassFragment extends Fragment implements Movimientos
         });
 
         btnFilter.setOnClickListener(v -> {
-            showDatePicker();
+            new AlertDialog.Builder(getContext())
+                    .setTitle("Filtrar Movimientos")
+                    .setItems(new String[]{"Filtrar por fecha", "Mostrar todos"}, (dialog, which) -> {
+                        if (which == 0) {
+                            showDatePicker();
+                        } else {
+                            showAllMovimientos();
+                        }
+                    })
+                    .show();
         });
-    }
-
-    private void showDatePicker() {
-        Calendar calendar = Calendar.getInstance();
-        DatePickerDialog datePickerDialog = new DatePickerDialog(
-                getContext(),
-                (view, year, month, dayOfMonth) -> {
-                    Toast.makeText(getContext(), "Filtrar por: " + dayOfMonth + "/" + (month + 1) + "/" + year, Toast.LENGTH_SHORT).show();
-                },
-                calendar.get(Calendar.YEAR),
-                calendar.get(Calendar.MONTH),
-                calendar.get(Calendar.DAY_OF_MONTH)
-        );
-        datePickerDialog.show();
     }
 
     private void loadMovimientos() {
@@ -157,5 +152,66 @@ public class MovimientosLimaPassFragment extends Fragment implements Movimientos
                 .addOnFailureListener(e -> {
                     Toast.makeText(getContext(), "Error al eliminar: " + e.getMessage(), Toast.LENGTH_SHORT).show();
                 });
+    }
+
+    private void showDatePicker() {
+        Calendar calendar = Calendar.getInstance();
+        DatePickerDialog datePickerDialog = new DatePickerDialog(
+                getContext(),
+                (view, year, month, dayOfMonth) -> {
+                    filterMovimentosByDate(year, month, dayOfMonth);
+                },
+                calendar.get(Calendar.YEAR),
+                calendar.get(Calendar.MONTH),
+                calendar.get(Calendar.DAY_OF_MONTH)
+        );
+        datePickerDialog.show();
+    }
+
+    private void filterMovimentosByDate(int year, int month, int day) {
+        Calendar selectedDate = Calendar.getInstance();
+        selectedDate.set(year, month, day, 0, 0, 0);
+        selectedDate.set(Calendar.MILLISECOND, 0);
+
+        Calendar endDate = Calendar.getInstance();
+        endDate.set(year, month, day, 23, 59, 59);
+        endDate.set(Calendar.MILLISECOND, 999);
+
+        System.out.println("🔍 FILTRANDO LIMA PASS POR FECHA: " + day + "/" + (month + 1) + "/" + year);
+
+        db.collection("movimientos_lima_pass")
+                .whereEqualTo("userId", userId)
+                .whereGreaterThanOrEqualTo("fechaMovimiento", selectedDate.getTime())
+                .whereLessThanOrEqualTo("fechaMovimiento", endDate.getTime())
+                .get()
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        List<MovimientoLimaPass> filteredMovimientos = new ArrayList<>();
+
+                        for (QueryDocumentSnapshot document : task.getResult()) {
+                            MovimientoLimaPass movimiento = document.toObject(MovimientoLimaPass.class);
+                            movimiento.setId(document.getId());
+                            filteredMovimientos.add(movimiento);
+                        }
+
+                        System.out.println("📊 MOVIMIENTOS FILTRADOS LIMA PASS: " + filteredMovimientos.size());
+                        adapter.updateMovimientos(filteredMovimientos);
+
+                        String dateStr = day + "/" + (month + 1) + "/" + year;
+                        if (filteredMovimientos.isEmpty()) {
+                            Toast.makeText(getContext(), "No hay movimientos para " + dateStr, Toast.LENGTH_SHORT).show();
+                        } else {
+                            Toast.makeText(getContext(), "Mostrando " + filteredMovimientos.size() + " movimientos para " + dateStr, Toast.LENGTH_SHORT).show();
+                        }
+                    } else {
+                        System.out.println("❌ ERROR AL FILTRAR LIMA PASS: " + task.getException().getMessage());
+                        Toast.makeText(getContext(), "Error al filtrar movimientos", Toast.LENGTH_SHORT).show();
+                    }
+                });
+    }
+
+    private void showAllMovimientos() {
+        loadMovimientos();
+        Toast.makeText(getContext(), "Mostrando todos los movimientos", Toast.LENGTH_SHORT).show();
     }
 }

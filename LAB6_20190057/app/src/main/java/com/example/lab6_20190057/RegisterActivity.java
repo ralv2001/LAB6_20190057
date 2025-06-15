@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.View;
+import android.widget.ImageView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -40,7 +41,8 @@ public class RegisterActivity extends AppCompatActivity {
     private CallbackManager mCallbackManager;
 
     private TextInputEditText etEmail, etPassword, etConfirmPassword;
-    private MaterialButton btnRegister, btnGoogleRegister, btnFacebookRegister, btnBackToLogin;
+    private MaterialButton btnRegister, btnBackToLogin;
+    private ImageView btnGoogleRegister, btnFacebookRegister;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -88,27 +90,34 @@ public class RegisterActivity extends AppCompatActivity {
 
     private void setupFacebookLogin() {
         btnFacebookRegister.setOnClickListener(v -> {
-            LoginButton loginButton = new LoginButton(this);
-            loginButton.setReadPermissions("email", "public_profile");
-            loginButton.registerCallback(mCallbackManager, new FacebookCallback<LoginResult>() {
-                @Override
-                public void onSuccess(LoginResult loginResult) {
-                    handleFacebookAccessToken(loginResult.getAccessToken());
-                }
-
-                @Override
-                public void onCancel() {
-                    Toast.makeText(RegisterActivity.this, "Registro con Facebook cancelado", Toast.LENGTH_SHORT).show();
-                }
-
-                @Override
-                public void onError(FacebookException exception) {
-                    Toast.makeText(RegisterActivity.this, "Error en registro con Facebook: " + exception.getMessage(), Toast.LENGTH_SHORT).show();
-                }
-            });
-            loginButton.performClick();
+            Toast.makeText(RegisterActivity.this, "Función en implementación", Toast.LENGTH_SHORT).show();
         });
     }
+
+    //TODO: Configurar Facebook Login
+//    private void setupFacebookLogin() {
+//        btnFacebookRegister.setOnClickListener(v -> {
+//            LoginButton loginButton = new LoginButton(this);
+//            loginButton.setReadPermissions("email", "public_profile");
+//            loginButton.registerCallback(mCallbackManager, new FacebookCallback<LoginResult>() {
+//                @Override
+//                public void onSuccess(LoginResult loginResult) {
+//                    handleFacebookAccessToken(loginResult.getAccessToken());
+//                }
+//
+//                @Override
+//                public void onCancel() {
+//                    Toast.makeText(RegisterActivity.this, "Registro con Facebook cancelado", Toast.LENGTH_SHORT).show();
+//                }
+//
+//                @Override
+//                public void onError(FacebookException exception) {
+//                    Toast.makeText(RegisterActivity.this, "Error en registro con Facebook: " + exception.getMessage(), Toast.LENGTH_SHORT).show();
+//                }
+//            });
+//            loginButton.performClick();
+//        });
+//    }
 
     private void registerWithEmail() {
         String email = etEmail.getText().toString().trim();

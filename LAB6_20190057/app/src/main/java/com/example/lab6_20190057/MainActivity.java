@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.View;
+import android.widget.ImageView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -40,7 +41,8 @@ public class MainActivity extends AppCompatActivity {
     private CallbackManager mCallbackManager;
 
     private TextInputEditText etEmail, etPassword;
-    private MaterialButton btnLogin, btnRegister, btnGoogleLogin, btnFacebookLogin;
+    private MaterialButton btnLogin, btnRegister;
+    private ImageView btnGoogleLogin, btnFacebookLogin;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -93,28 +95,35 @@ public class MainActivity extends AppCompatActivity {
 
     private void setupFacebookLogin() {
         btnFacebookLogin.setOnClickListener(v -> {
-            // Crear un LoginButton temporal para usar su funcionalidad
-            LoginButton loginButton = new LoginButton(this);
-            loginButton.setReadPermissions("email", "public_profile");
-            loginButton.registerCallback(mCallbackManager, new FacebookCallback<LoginResult>() {
-                @Override
-                public void onSuccess(LoginResult loginResult) {
-                    handleFacebookAccessToken(loginResult.getAccessToken());
-                }
-
-                @Override
-                public void onCancel() {
-                    Toast.makeText(MainActivity.this, "Login con Facebook cancelado", Toast.LENGTH_SHORT).show();
-                }
-
-                @Override
-                public void onError(FacebookException exception) {
-                    Toast.makeText(MainActivity.this, "Error en login con Facebook: " + exception.getMessage(), Toast.LENGTH_SHORT).show();
-                }
-            });
-            loginButton.performClick();
+            Toast.makeText(MainActivity.this, "Función en implementación", Toast.LENGTH_SHORT).show();
         });
     }
+
+    //TODO: Configurar Facebook Login
+//    private void setupFacebookLogin() {
+//        btnFacebookLogin.setOnClickListener(v -> {
+//            // Crear un LoginButton temporal para usar su funcionalidad
+//            LoginButton loginButton = new LoginButton(this);
+//            loginButton.setReadPermissions("email", "public_profile");
+//            loginButton.registerCallback(mCallbackManager, new FacebookCallback<LoginResult>() {
+//                @Override
+//                public void onSuccess(LoginResult loginResult) {
+//                    handleFacebookAccessToken(loginResult.getAccessToken());
+//                }
+//
+//                @Override
+//                public void onCancel() {
+//                    Toast.makeText(MainActivity.this, "Login con Facebook cancelado", Toast.LENGTH_SHORT).show();
+//                }
+//
+//                @Override
+//                public void onError(FacebookException exception) {
+//                    Toast.makeText(MainActivity.this, "Error en login con Facebook: " + exception.getMessage(), Toast.LENGTH_SHORT).show();
+//                }
+//            });
+//            loginButton.performClick();
+//        });
+//    }
 
     private void signInWithEmail() {
         String email = etEmail.getText().toString().trim();

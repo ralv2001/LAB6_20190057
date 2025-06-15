@@ -79,7 +79,17 @@ public class MovimientosLinea1Fragment extends Fragment implements MovimientosLi
         });
 
         btnFilter.setOnClickListener(v -> {
-            showDatePicker();
+            // Crear un dialog con opciones
+            new AlertDialog.Builder(getContext())
+                    .setTitle("Filtrar Movimientos")
+                    .setItems(new String[]{"Filtrar por fecha", "Mostrar todos"}, (dialog, which) -> {
+                        if (which == 0) {
+                            showDatePicker();
+                        } else {
+                            showAllMovimientos();
+                        }
+                    })
+                    .show();
         });
     }
 
@@ -88,7 +98,6 @@ public class MovimientosLinea1Fragment extends Fragment implements MovimientosLi
         DatePickerDialog datePickerDialog = new DatePickerDialog(
                 getContext(),
                 (view, year, month, dayOfMonth) -> {
-                    // Filtrar movimientos por fecha seleccionada
                     filterMovimentosByDate(year, month, dayOfMonth);
                 },
                 calendar.get(Calendar.YEAR),
@@ -100,11 +109,49 @@ public class MovimientosLinea1Fragment extends Fragment implements MovimientosLi
 
     private void filterMovimentosByDate(int year, int month, int day) {
         Calendar selectedDate = Calendar.getInstance();
-        selectedDate.set(year, month, day);
+        selectedDate.set(year, month, day, 0, 0, 0);
+        selectedDate.set(Calendar.MILLISECOND, 0);
 
-        // Recargar movimientos filtrados por fecha
-        Toast.makeText(getContext(), "Filtro por fecha: " + day + "/" + (month + 1) + "/" + year, Toast.LENGTH_SHORT).show();
-        // Aquí puedes implementar la lógica de filtrado real
+        Calendar endDate = Calendar.getInstance();
+        endDate.set(year, month, day, 23, 59, 59);
+        endDate.set(Calendar.MILLISECOND, 999);
+
+        System.out.println("🔍 FILTRANDO LÍNEA 1 POR FECHA: " + day + "/" + (month + 1) + "/" + year);
+
+        db.collection("movimientos_linea1")
+                .whereEqualTo("userId", userId)
+                .whereGreaterThanOrEqualTo("fechaMovimiento", selectedDate.getTime())
+                .whereLessThanOrEqualTo("fechaMovimiento", endDate.getTime())
+                .get()
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        List<MovimientoLinea1> filteredMovimientos = new ArrayList<>();
+
+                        for (QueryDocumentSnapshot document : task.getResult()) {
+                            MovimientoLinea1 movimiento = document.toObject(MovimientoLinea1.class);
+                            movimiento.setId(document.getId());
+                            filteredMovimientos.add(movimiento);
+                        }
+
+                        System.out.println("📊 MOVIMIENTOS FILTRADOS LÍNEA 1: " + filteredMovimientos.size());
+                        adapter.updateMovimientos(filteredMovimientos);
+
+                        String dateStr = day + "/" + (month + 1) + "/" + year;
+                        if (filteredMovimientos.isEmpty()) {
+                            Toast.makeText(getContext(), "No hay movimientos para " + dateStr, Toast.LENGTH_SHORT).show();
+                        } else {
+                            Toast.makeText(getContext(), "Mostrando " + filteredMovimientos.size() + " movimientos para " + dateStr, Toast.LENGTH_SHORT).show();
+                        }
+                    } else {
+                        System.out.println("❌ ERROR AL FILTRAR LÍNEA 1: " + task.getException().getMessage());
+                        Toast.makeText(getContext(), "Error al filtrar movimientos", Toast.LENGTH_SHORT).show();
+                    }
+                });
+    }
+
+    private void showAllMovimientos() {
+        loadMovimientos(); // Esto recarga todos los movimientos
+        Toast.makeText(getContext(), "Mostrando todos los movimientos", Toast.LENGTH_SHORT).show();
     }
 
     private void loadMovimientos() {
