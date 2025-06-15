@@ -16,6 +16,8 @@ dependencyResolutionManagement {
     repositories {
         google()
         mavenCentral()
+        // Agrega esta línea:
+        maven { url 'https://jitpack.io' }
     }
 }
 
