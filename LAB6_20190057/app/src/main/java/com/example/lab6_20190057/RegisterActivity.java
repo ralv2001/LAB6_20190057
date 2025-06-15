@@ -31,7 +31,7 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.GoogleAuthProvider;
 
-public class MainActivity extends AppCompatActivity {
+public class RegisterActivity extends AppCompatActivity {
 
     private static final int RC_SIGN_IN = 9001;
 
@@ -39,13 +39,13 @@ public class MainActivity extends AppCompatActivity {
     private GoogleSignInClient mGoogleSignInClient;
     private CallbackManager mCallbackManager;
 
-    private TextInputEditText etEmail, etPassword;
-    private MaterialButton btnLogin, btnRegister, btnGoogleLogin, btnFacebookLogin;
+    private TextInputEditText etEmail, etPassword, etConfirmPassword;
+    private MaterialButton btnRegister, btnGoogleRegister, btnFacebookRegister, btnBackToLogin;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+        setContentView(R.layout.activity_register);
 
         // Inicializar Firebase Auth
         mAuth = FirebaseAuth.getInstance();
@@ -64,36 +64,30 @@ public class MainActivity extends AppCompatActivity {
         initViews();
         setupClickListeners();
         setupFacebookLogin();
-
-        Intent intent = getIntent();
-        if (intent.hasExtra("registered_email")) {
-            String registeredEmail = intent.getStringExtra("registered_email");
-            etEmail.setText(registeredEmail);
-            Toast.makeText(this, "Cuenta creada exitosamente. Inicia sesión con tu nueva cuenta.", Toast.LENGTH_LONG).show();
-        }
     }
 
     private void initViews() {
         etEmail = findViewById(R.id.etEmail);
         etPassword = findViewById(R.id.etPassword);
-        btnLogin = findViewById(R.id.btnLogin);
+        etConfirmPassword = findViewById(R.id.etConfirmPassword);
         btnRegister = findViewById(R.id.btnRegister);
-        btnGoogleLogin = findViewById(R.id.btnGoogleLogin);
-        btnFacebookLogin = findViewById(R.id.btnFacebookLogin);
+        btnGoogleRegister = findViewById(R.id.btnGoogleRegister);
+        btnFacebookRegister = findViewById(R.id.btnFacebookRegister);
+        btnBackToLogin = findViewById(R.id.btnBackToLogin);
     }
 
     private void setupClickListeners() {
-        btnLogin.setOnClickListener(v -> signInWithEmail());
-        btnRegister.setOnClickListener(v -> {
-            Intent intent = new Intent(this, RegisterActivity.class);
+        btnRegister.setOnClickListener(v -> registerWithEmail());
+        btnGoogleRegister.setOnClickListener(v -> signInWithGoogle());
+        btnBackToLogin.setOnClickListener(v -> {
+            Intent intent = new Intent(this, MainActivity.class);
             startActivity(intent);
+            finish();
         });
-        btnGoogleLogin.setOnClickListener(v -> signInWithGoogle());
     }
 
     private void setupFacebookLogin() {
-        btnFacebookLogin.setOnClickListener(v -> {
-            // Crear un LoginButton temporal para usar su funcionalidad
+        btnFacebookRegister.setOnClickListener(v -> {
             LoginButton loginButton = new LoginButton(this);
             loginButton.setReadPermissions("email", "public_profile");
             loginButton.registerCallback(mCallbackManager, new FacebookCallback<LoginResult>() {
@@ -104,21 +98,22 @@ public class MainActivity extends AppCompatActivity {
 
                 @Override
                 public void onCancel() {
-                    Toast.makeText(MainActivity.this, "Login con Facebook cancelado", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(RegisterActivity.this, "Registro con Facebook cancelado", Toast.LENGTH_SHORT).show();
                 }
 
                 @Override
                 public void onError(FacebookException exception) {
-                    Toast.makeText(MainActivity.this, "Error en login con Facebook: " + exception.getMessage(), Toast.LENGTH_SHORT).show();
+                    Toast.makeText(RegisterActivity.this, "Error en registro con Facebook: " + exception.getMessage(), Toast.LENGTH_SHORT).show();
                 }
             });
             loginButton.performClick();
         });
     }
 
-    private void signInWithEmail() {
+    private void registerWithEmail() {
         String email = etEmail.getText().toString().trim();
         String password = etPassword.getText().toString().trim();
+        String confirmPassword = etConfirmPassword.getText().toString().trim();
 
         if (TextUtils.isEmpty(email)) {
             etEmail.setError("El email es requerido");
@@ -135,16 +130,28 @@ public class MainActivity extends AppCompatActivity {
             return;
         }
 
-        mAuth.signInWithEmailAndPassword(email, password)
+        if (!password.equals(confirmPassword)) {
+            etConfirmPassword.setError("Las contraseñas no coinciden");
+            return;
+        }
+
+        mAuth.createUserWithEmailAndPassword(email, password)
                 .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
                     @Override
                     public void onComplete(@NonNull Task<AuthResult> task) {
                         if (task.isSuccessful()) {
-                            FirebaseUser user = mAuth.getCurrentUser();
-                            Toast.makeText(MainActivity.this, "Bienvenido " + user.getEmail(), Toast.LENGTH_SHORT).show();
-                            goToMainMenu();
+                            // Cerrar sesión automáticamente después del registro
+                            mAuth.signOut();
+
+                            Toast.makeText(RegisterActivity.this, "Cuenta creada exitosamente. Ahora puedes iniciar sesión.", Toast.LENGTH_LONG).show();
+
+                            // Redirigir al login
+                            Intent intent = new Intent(RegisterActivity.this, MainActivity.class);
+                            intent.putExtra("registered_email", email); // Pasar el email para pre-llenarlo
+                            startActivity(intent);
+                            finish();
                         } else {
-                            Toast.makeText(MainActivity.this, "Error de autenticación: " + task.getException().getMessage(), Toast.LENGTH_LONG).show();
+                            Toast.makeText(RegisterActivity.this, "Error al crear cuenta: " + task.getException().getMessage(), Toast.LENGTH_LONG).show();
                         }
                     }
                 });
@@ -159,7 +166,6 @@ public class MainActivity extends AppCompatActivity {
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 
-        // Resultado de Google Sign-In
         if (requestCode == RC_SIGN_IN) {
             Task<GoogleSignInAccount> task = GoogleSignIn.getSignedInAccountFromIntent(data);
             try {
@@ -170,7 +176,6 @@ public class MainActivity extends AppCompatActivity {
             }
         }
 
-        // Resultado de Facebook Login
         mCallbackManager.onActivityResult(requestCode, resultCode, data);
     }
 
@@ -182,10 +187,10 @@ public class MainActivity extends AppCompatActivity {
                     public void onComplete(@NonNull Task<AuthResult> task) {
                         if (task.isSuccessful()) {
                             FirebaseUser user = mAuth.getCurrentUser();
-                            Toast.makeText(MainActivity.this, "Bienvenido " + user.getDisplayName(), Toast.LENGTH_SHORT).show();
+                            Toast.makeText(RegisterActivity.this, "Bienvenido " + user.getDisplayName(), Toast.LENGTH_SHORT).show();
                             goToMainMenu();
                         } else {
-                            Toast.makeText(MainActivity.this, "Error de autenticación con Google", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(RegisterActivity.this, "Error de autenticación con Google", Toast.LENGTH_SHORT).show();
                         }
                     }
                 });
@@ -199,28 +204,19 @@ public class MainActivity extends AppCompatActivity {
                     public void onComplete(@NonNull Task<AuthResult> task) {
                         if (task.isSuccessful()) {
                             FirebaseUser user = mAuth.getCurrentUser();
-                            Toast.makeText(MainActivity.this, "Bienvenido " + user.getDisplayName(), Toast.LENGTH_SHORT).show();
+                            Toast.makeText(RegisterActivity.this, "Bienvenido " + user.getDisplayName(), Toast.LENGTH_SHORT).show();
                             goToMainMenu();
                         } else {
-                            Toast.makeText(MainActivity.this, "Error de autenticación con Facebook", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(RegisterActivity.this, "Error de autenticación con Facebook", Toast.LENGTH_SHORT).show();
                         }
                     }
                 });
     }
 
+    // Mantener este método solo para Google y Facebook
     private void goToMainMenu() {
         Intent intent = new Intent(this, MenuActivity.class);
         startActivity(intent);
         finish();
-    }
-
-    @Override
-    public void onStart() {
-        super.onStart();
-        // Verificar si el usuario ya está logueado
-        FirebaseUser currentUser = mAuth.getCurrentUser();
-        if (currentUser != null) {
-            goToMainMenu();
-        }
     }
 }
