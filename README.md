@@ -14,6 +14,7 @@ Se sugiere que se realize las siguientes pruebas para  verificar el correcto fun
 5. Ver gráficos en la pestaña Resumen
 6. Probar filtros por fecha
 7. Cerrar sesión (con confirmación)
+
 ![image](https://github.com/user-attachments/assets/54e8cca5-fefd-4208-9804-794ee19b3960)
 ![image](https://github.com/user-attachments/assets/2c92a76e-ce40-494b-b924-57cbb23510d9)
 
