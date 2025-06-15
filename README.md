@@ -3,7 +3,7 @@ Este es mi laboratorio 6 :)
 
 ## **Importante: LEER TODO ANTES DE REVISAR EL PROYECTO**
 Si bien decía en el enunciado "Los nuevos usuarios podrán registrarse desde la misma pantalla de inicio de
-sesión.", agregué otra vista cuando se le de clic a "Registrarse" para que se vea mejor la aplicación. El login de facebook no me funciona porque no tengo permisos para registrarme y verificarme en https://developers.facebook.com/: "No puedes realizar el cambio en este momento. Esto se debe a que detectamos que estás usando un dispositivo que no usas habitualmente y necesitamos proteger tu cuenta. Te permitiremos realizar el cambio cuando ya hayas usado este dispositivo durante un tiempo".
+sesión.", agregué otra vista cuando se le de clic a "Registrarse" para que se vea mejor la aplicación. Por otro lado, el login y registro mediante  facebook no me funciona porque no tengo permisos para registrarme y verificarme en https://developers.facebook.com/: "No puedes realizar el cambio en este momento. Esto se debe a que detectamos que estás usando un dispositivo que no usas habitualmente y necesitamos proteger tu cuenta. Te permitiremos realizar el cambio cuando ya hayas usado este dispositivo durante un tiempo". Esta es la plataforma que me permitiría lograr hacer esa funcionalidad, pero por los motivos que he explicado, no se pudo.
 
 Se adjuntan las evidencias a continuación:
 
