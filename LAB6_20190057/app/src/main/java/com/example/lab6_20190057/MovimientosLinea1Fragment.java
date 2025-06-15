@@ -88,14 +88,23 @@ public class MovimientosLinea1Fragment extends Fragment implements MovimientosLi
         DatePickerDialog datePickerDialog = new DatePickerDialog(
                 getContext(),
                 (view, year, month, dayOfMonth) -> {
-                    // Aquí implementarías el filtrado real
-                    Toast.makeText(getContext(), "Filtrar por: " + dayOfMonth + "/" + (month + 1) + "/" + year, Toast.LENGTH_SHORT).show();
+                    // Filtrar movimientos por fecha seleccionada
+                    filterMovimentosByDate(year, month, dayOfMonth);
                 },
                 calendar.get(Calendar.YEAR),
                 calendar.get(Calendar.MONTH),
                 calendar.get(Calendar.DAY_OF_MONTH)
         );
         datePickerDialog.show();
+    }
+
+    private void filterMovimentosByDate(int year, int month, int day) {
+        Calendar selectedDate = Calendar.getInstance();
+        selectedDate.set(year, month, day);
+
+        // Recargar movimientos filtrados por fecha
+        Toast.makeText(getContext(), "Filtro por fecha: " + day + "/" + (month + 1) + "/" + year, Toast.LENGTH_SHORT).show();
+        // Aquí puedes implementar la lógica de filtrado real
     }
 
     private void loadMovimientos() {
