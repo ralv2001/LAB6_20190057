@@ -17,5 +17,5 @@ Emulador configurado:
 **Pixel 4 API 31 (Android 12.0 "S") x86_64**
 
 ## **Configuración del Proyecto**
-**Nombre:** LAB5_20190057
-**Package name:** com.example.LAB5_20190057 
+**Nombre:** LAB6_20190057
+**Package name:** com.example.LAB6_20190057 
