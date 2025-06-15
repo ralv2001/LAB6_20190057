@@ -24,6 +24,11 @@ Por otro lado, se sugiere que se realize las siguientes pruebas para  verificar 
 ![image](https://github.com/user-attachments/assets/54e8cca5-fefd-4208-9804-794ee19b3960)
 ![image](https://github.com/user-attachments/assets/2c92a76e-ce40-494b-b924-57cbb23510d9)
 
+Por último, se ha añadido al JP encargado del laboratorio, Angelo Ramos Neira, permisos de visualización del firebase del laboratorio para que se pueda realizar la verificación correspondiente:
+
+![image](https://github.com/user-attachments/assets/c4b965b9-1d85-4770-93bf-468aca0f54c8)
+
+
 ## **Uso de Inteligencia artificial**
 Se utilizó inteligencia artificial en los códigos en Java para ayuda a solucionar bugs, así como para comentarios que ayuden a identificar mejor las partes del código mapeadas a su funcionalidad.
 
