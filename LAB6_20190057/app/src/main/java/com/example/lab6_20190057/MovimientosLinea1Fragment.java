@@ -56,11 +56,16 @@ public class MovimientosLinea1Fragment extends Fragment implements MovimientosLi
 
         db = FirebaseFirestore.getInstance();
         userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+
+        // Inicializar la lista como nueva ArrayList
         movimientos = new ArrayList<>();
     }
 
     private void setupRecyclerView() {
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
+
+        // Inicializar con lista vacía nueva
+        movimientos = new ArrayList<>();
         adapter = new MovimientosLinea1Adapter(movimientos);
         adapter.setOnMovimientoClickListener(this);
         recyclerView.setAdapter(adapter);
@@ -102,18 +107,23 @@ public class MovimientosLinea1Fragment extends Fragment implements MovimientosLi
                 .addOnCompleteListener(task -> {
                     if (task.isSuccessful()) {
                         System.out.println("✅ FIRESTORE RESPUESTA EXITOSA");
-                        movimientos.clear();
+
+                        // Crear una NUEVA lista temporal
+                        List<MovimientoLinea1> tempList = new ArrayList<>();
+
                         for (QueryDocumentSnapshot document : task.getResult()) {
                             MovimientoLinea1 movimiento = document.toObject(MovimientoLinea1.class);
                             movimiento.setId(document.getId());
-                            movimientos.add(movimiento);
+                            tempList.add(movimiento);
                             System.out.println("📝 MOVIMIENTO CARGADO: " + movimiento.getIdTarjeta());
                         }
 
-                        System.out.println("📊 TOTAL MOVIMIENTOS: " + movimientos.size());
-                        adapter.updateMovimientos(movimientos);
+                        System.out.println("📊 TOTAL MOVIMIENTOS: " + tempList.size());
 
-                        if (movimientos.isEmpty()) {
+                        // Actualizar el adapter con la nueva lista
+                        adapter.updateMovimientos(tempList);
+
+                        if (tempList.isEmpty()) {
                             System.out.println("⚠️ NO HAY MOVIMIENTOS");
                         }
                     } else {
@@ -124,8 +134,12 @@ public class MovimientosLinea1Fragment extends Fragment implements MovimientosLi
 
     @Override
     public void onEditClick(MovimientoLinea1 movimiento, int position) {
-        // TODO: Implementar edición
-        Toast.makeText(getContext(), "Editar movimiento: " + movimiento.getIdTarjeta(), Toast.LENGTH_SHORT).show();
+        EditMovimientoLinea1Dialog dialog = EditMovimientoLinea1Dialog.newInstance(movimiento);
+        dialog.setOnMovimientoEditedListener(() -> {
+            System.out.println("🔄 RECARGANDO DESPUÉS DE EDITAR");
+            loadMovimientos();
+        });
+        dialog.show(getParentFragmentManager(), "EditMovimientoLinea1Dialog");
     }
 
     @Override

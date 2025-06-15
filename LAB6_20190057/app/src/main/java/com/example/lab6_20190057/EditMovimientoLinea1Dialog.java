@@ -2,7 +2,6 @@ package com.example.lab6_20190057;
 
 import android.app.DatePickerDialog;
 import android.app.Dialog;
-import android.app.TimePickerDialog;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
@@ -18,7 +17,6 @@ import androidx.fragment.app.DialogFragment;
 
 import com.example.lab6_20190057.models.MovimientoLinea1;
 import com.google.android.material.textfield.TextInputEditText;
-import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.text.SimpleDateFormat;
@@ -26,11 +24,12 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
 
-public class AddMovimientoLinea1Dialog extends DialogFragment {
+public class EditMovimientoLinea1Dialog extends DialogFragment {
 
     private TextInputEditText etIdTarjeta, etFecha, etTiempoViaje;
     private AutoCompleteTextView spinnerEntrada, spinnerSalida;
     private Calendar selectedDate;
+    private MovimientoLinea1 movimientoToEdit;
 
     // Estaciones de la Línea 1
     private String[] estaciones = {
@@ -44,13 +43,19 @@ public class AddMovimientoLinea1Dialog extends DialogFragment {
             "Tacna", "Jorge Chávez", "Grau", "Villa María del Triunfo"
     };
 
-    public interface OnMovimientoAddedListener {
-        void onMovimientoAdded();
+    public interface OnMovimientoEditedListener {
+        void onMovimientoEdited();
     }
 
-    private OnMovimientoAddedListener listener;
+    private OnMovimientoEditedListener listener;
 
-    public void setOnMovimientoAddedListener(OnMovimientoAddedListener listener) {
+    public static EditMovimientoLinea1Dialog newInstance(MovimientoLinea1 movimiento) {
+        EditMovimientoLinea1Dialog dialog = new EditMovimientoLinea1Dialog();
+        dialog.movimientoToEdit = movimiento;
+        return dialog;
+    }
+
+    public void setOnMovimientoEditedListener(OnMovimientoEditedListener listener) {
         this.listener = listener;
     }
 
@@ -62,11 +67,12 @@ public class AddMovimientoLinea1Dialog extends DialogFragment {
         initViews(view);
         setupSpinners();
         setupDatePicker();
+        fillFormWithData();
 
         return new AlertDialog.Builder(requireContext())
-                .setTitle("Agregar Movimiento Línea 1")
+                .setTitle("Editar Movimiento Línea 1")
                 .setView(view)
-                .setPositiveButton("Guardar", (dialog, which) -> saveMovimiento())
+                .setPositiveButton("Actualizar", (dialog, which) -> updateMovimiento())
                 .setNegativeButton("Cancelar", null)
                 .create();
     }
@@ -79,7 +85,6 @@ public class AddMovimientoLinea1Dialog extends DialogFragment {
         spinnerSalida = view.findViewById(R.id.spinnerSalida);
 
         selectedDate = Calendar.getInstance();
-        updateDateField();
     }
 
     private void setupSpinners() {
@@ -109,30 +114,32 @@ public class AddMovimientoLinea1Dialog extends DialogFragment {
         });
     }
 
+    private void fillFormWithData() {
+        if (movimientoToEdit != null) {
+            etIdTarjeta.setText(movimientoToEdit.getIdTarjeta());
+            etTiempoViaje.setText(String.valueOf(movimientoToEdit.getTiempoViaje()));
+            spinnerEntrada.setText(movimientoToEdit.getEstacionEntrada(), false);
+            spinnerSalida.setText(movimientoToEdit.getEstacionSalida(), false);
+
+            selectedDate.setTime(movimientoToEdit.getFechaMovimiento());
+            updateDateField();
+        }
+    }
+
     private void updateDateField() {
         SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
         etFecha.setText(sdf.format(selectedDate.getTime()));
     }
 
-    private void saveMovimiento() {
+    private void updateMovimiento() {
         String idTarjeta = etIdTarjeta.getText().toString().trim();
         String estacionEntrada = spinnerEntrada.getText().toString().trim();
         String estacionSalida = spinnerSalida.getText().toString().trim();
         String tiempoViajeStr = etTiempoViaje.getText().toString().trim();
 
-        if (TextUtils.isEmpty(idTarjeta)) {
-            return;
-        }
-
-        if (TextUtils.isEmpty(estacionEntrada)) {
-            return;
-        }
-
-        if (TextUtils.isEmpty(estacionSalida)) {
-            return;
-        }
-
-        if (TextUtils.isEmpty(tiempoViajeStr)) {
+        if (TextUtils.isEmpty(idTarjeta) || TextUtils.isEmpty(estacionEntrada) ||
+                TextUtils.isEmpty(estacionSalida) || TextUtils.isEmpty(tiempoViajeStr)) {
+            Toast.makeText(getContext(), "Por favor completa todos los campos", Toast.LENGTH_SHORT).show();
             return;
         }
 
@@ -140,43 +147,43 @@ public class AddMovimientoLinea1Dialog extends DialogFragment {
         try {
             tiempoViaje = Integer.parseInt(tiempoViajeStr);
         } catch (NumberFormatException e) {
+            Toast.makeText(getContext(), "El tiempo de viaje debe ser un número", Toast.LENGTH_SHORT).show();
             return;
         }
 
-        String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
         Date fechaMovimiento = selectedDate.getTime();
 
-        MovimientoLinea1 movimiento = new MovimientoLinea1(
-                idTarjeta, fechaMovimiento, estacionEntrada, estacionSalida, tiempoViaje, userId
-        );
+        System.out.println("🔄 EDITANDO MOVIMIENTO: " + movimientoToEdit.getId());
 
+        // Actualizar el movimiento en Firestore
         FirebaseFirestore.getInstance()
                 .collection("movimientos_linea1")
-                .add(movimiento)
-                .addOnSuccessListener(documentReference -> {
-                    System.out.println("✅ MOVIMIENTO GUARDADO EXITOSAMENTE");
-
-                    // Verificar que el contexto no sea null antes de mostrar Toast
+                .document(movimientoToEdit.getId())
+                .update(
+                        "idTarjeta", idTarjeta,
+                        "fechaMovimiento", fechaMovimiento,
+                        "estacionEntrada", estacionEntrada,
+                        "estacionSalida", estacionSalida,
+                        "tiempoViaje", tiempoViaje
+                )
+                .addOnSuccessListener(aVoid -> {
+                    System.out.println("✅ MOVIMIENTO ACTUALIZADO EXITOSAMENTE");
                     if (getContext() != null) {
-                        Toast.makeText(getContext(), "Movimiento guardado exitosamente", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getContext(), "Movimiento actualizado exitosamente", Toast.LENGTH_SHORT).show();
                     }
 
-                    // Llamar al listener para actualizar la lista
                     if (listener != null) {
-                        System.out.println("✅ LLAMANDO AL LISTENER");
-                        listener.onMovimientoAdded();
+                        listener.onMovimientoEdited();
                     }
 
-                    // Cerrar el diálogo
                     if (getDialog() != null) {
                         getDialog().dismiss();
                     }
                 })
                 .addOnFailureListener(e -> {
-                    System.out.println("❌ ERROR AL GUARDAR: " + e.getMessage());
-
+                    System.out.println("❌ ERROR AL ACTUALIZAR: " + e.getMessage());
                     if (getContext() != null) {
-                        Toast.makeText(getContext(), "Error al guardar: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getContext(), "Error al actualizar: " + e.getMessage(), Toast.LENGTH_SHORT).show();
                     }
                 });
     }

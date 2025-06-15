@@ -2,21 +2,19 @@ package com.example.lab6_20190057;
 
 import android.app.DatePickerDialog;
 import android.app.Dialog;
-import android.app.TimePickerDialog;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.DialogFragment;
 
-import com.example.lab6_20190057.models.MovimientoLinea1;
+import com.example.lab6_20190057.models.MovimientoLimaPass;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -26,22 +24,20 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
 
-public class AddMovimientoLinea1Dialog extends DialogFragment {
+public class AddMovimientoLimaPassDialog extends DialogFragment {
 
     private TextInputEditText etIdTarjeta, etFecha, etTiempoViaje;
     private AutoCompleteTextView spinnerEntrada, spinnerSalida;
     private Calendar selectedDate;
 
-    // Estaciones de la Línea 1
-    private String[] estaciones = {
-            "Villa El Salvador", "Parque Industrial", "Pumuy", "Puente Los Reyes",
-            "SJM", "Atocongo", "Jorge Chávez", "Ayacucho", "Cabitos", "San Borja Sur",
-            "Angamos", "San Borja Norte", "Javier Prado", "Esther Ballivián",
-            "Domingo Orué", "María Auxiliadora", "Nicolás Arriola", "Gamarra",
-            "La Cultura", "San Carlos", "Pirámide del Sol", "Los Jardines",
-            "El Ángel", "Presbítero Maestro", "Caja de Agua", "Bayóvar",
-            "Honorio Delgado", "UNI", "Parque del Trabajo", "Caquetá",
-            "Tacna", "Jorge Chávez", "Grau", "Villa María del Triunfo"
+    // Paraderos principales del Metropolitano y Corredores
+    private String[] paraderos = {
+            "Naranjal", "Izaguirre", "Pacífico", "Independencia", "Los Jazmines",
+            "Tupac Amaru", "Caquetá", "Ramón Castilla", "Tacna", "Jiménez Pimentel",
+            "Colmena", "España", "Central", "Estadio Nacional", "México",
+            "Canada", "Javier Prado", "Canaval Moreyra", "Aramburú", "Domingo Orué",
+            "Angamos", "Ricardo Palma", "Benavides", "28 de Julio", "Balta",
+            "Barranco", "Bulevar", "Estación Barranco", "Chorrillos"
     };
 
     public interface OnMovimientoAddedListener {
@@ -57,14 +53,14 @@ public class AddMovimientoLinea1Dialog extends DialogFragment {
     @NonNull
     @Override
     public Dialog onCreateDialog(@Nullable Bundle savedInstanceState) {
-        View view = LayoutInflater.from(getContext()).inflate(R.layout.dialog_add_movimiento_linea1, null);
+        View view = LayoutInflater.from(getContext()).inflate(R.layout.dialog_add_movimiento_lima_pass, null);
 
         initViews(view);
         setupSpinners();
         setupDatePicker();
 
         return new AlertDialog.Builder(requireContext())
-                .setTitle("Agregar Movimiento Línea 1")
+                .setTitle("Agregar Movimiento Lima Pass")
                 .setView(view)
                 .setPositiveButton("Guardar", (dialog, which) -> saveMovimiento())
                 .setNegativeButton("Cancelar", null)
@@ -86,7 +82,7 @@ public class AddMovimientoLinea1Dialog extends DialogFragment {
         ArrayAdapter<String> adapter = new ArrayAdapter<>(
                 requireContext(),
                 android.R.layout.simple_dropdown_item_1line,
-                estaciones
+                paraderos
         );
 
         spinnerEntrada.setAdapter(adapter);
@@ -116,23 +112,12 @@ public class AddMovimientoLinea1Dialog extends DialogFragment {
 
     private void saveMovimiento() {
         String idTarjeta = etIdTarjeta.getText().toString().trim();
-        String estacionEntrada = spinnerEntrada.getText().toString().trim();
-        String estacionSalida = spinnerSalida.getText().toString().trim();
+        String paraderoEntrada = spinnerEntrada.getText().toString().trim();
+        String paraderoSalida = spinnerSalida.getText().toString().trim();
         String tiempoViajeStr = etTiempoViaje.getText().toString().trim();
 
-        if (TextUtils.isEmpty(idTarjeta)) {
-            return;
-        }
-
-        if (TextUtils.isEmpty(estacionEntrada)) {
-            return;
-        }
-
-        if (TextUtils.isEmpty(estacionSalida)) {
-            return;
-        }
-
-        if (TextUtils.isEmpty(tiempoViajeStr)) {
+        if (TextUtils.isEmpty(idTarjeta) || TextUtils.isEmpty(paraderoEntrada) ||
+                TextUtils.isEmpty(paraderoSalida) || TextUtils.isEmpty(tiempoViajeStr)) {
             return;
         }
 
@@ -146,38 +131,26 @@ public class AddMovimientoLinea1Dialog extends DialogFragment {
         String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
         Date fechaMovimiento = selectedDate.getTime();
 
-        MovimientoLinea1 movimiento = new MovimientoLinea1(
-                idTarjeta, fechaMovimiento, estacionEntrada, estacionSalida, tiempoViaje, userId
+        MovimientoLimaPass movimiento = new MovimientoLimaPass(
+                idTarjeta, fechaMovimiento, paraderoEntrada, paraderoSalida, tiempoViaje, userId
         );
 
         FirebaseFirestore.getInstance()
-                .collection("movimientos_linea1")
+                .collection("movimientos_lima_pass")
                 .add(movimiento)
                 .addOnSuccessListener(documentReference -> {
-                    System.out.println("✅ MOVIMIENTO GUARDADO EXITOSAMENTE");
+                    System.out.println("✅ MOVIMIENTO LIMA PASS GUARDADO EXITOSAMENTE");
 
-                    // Verificar que el contexto no sea null antes de mostrar Toast
-                    if (getContext() != null) {
-                        Toast.makeText(getContext(), "Movimiento guardado exitosamente", Toast.LENGTH_SHORT).show();
-                    }
-
-                    // Llamar al listener para actualizar la lista
                     if (listener != null) {
-                        System.out.println("✅ LLAMANDO AL LISTENER");
                         listener.onMovimientoAdded();
                     }
 
-                    // Cerrar el diálogo
                     if (getDialog() != null) {
                         getDialog().dismiss();
                     }
                 })
                 .addOnFailureListener(e -> {
-                    System.out.println("❌ ERROR AL GUARDAR: " + e.getMessage());
-
-                    if (getContext() != null) {
-                        Toast.makeText(getContext(), "Error al guardar: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-                    }
+                    System.out.println("❌ ERROR AL GUARDAR LIMA PASS: " + e.getMessage());
                 });
     }
 }
